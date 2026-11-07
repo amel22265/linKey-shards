@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Module 1 — What's Cybersecurity | LinKey Shards</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body.course-page{
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    background:linear-gradient(200deg, var(--right-bg) 0%, var(--right-bg-2) 100%);
+    color:var(--accent-text);
+    position:relative;
+    overflow:hidden;
+  }
+  .course-pattern{ position:absolute; inset:0; opacity:0.07; pointer-events:none; }
+  .course-pattern svg{ width:100%; height:100%; }
+
+  .course-header{
+    position:relative; z-index:2;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:28px 60px 0 60px;
+  }
+  .course-eyebrow{
+    display:block; font-size:0.7rem; letter-spacing:3px; text-transform:uppercase;
+    opacity:0.55; font-weight:600; margin-bottom:6px;
+  }
+  .course-title{ font-size:1.5rem; font-weight:800; }
+
+  .shard-progress{ display:flex; gap:10px; align-items:center; }
+  .shard-progress svg{ width:22px; height:26px; transition:opacity .25s ease, filter .25s ease; }
+  .shard-icon{ fill:rgba(255,245,245,0.18); stroke:rgba(255,245,245,0.4); stroke-width:2; }
+  .shard-icon.done{ fill:var(--accent); stroke:var(--accent); }
+  .shard-icon.current{ fill:rgba(226,75,74,0.35); stroke:var(--accent); }
+
+  .course-viewport{
+    position:relative; z-index:2;
+    flex:1; display:flex; align-items:center; justify-content:center;
+    padding:20px 60px; overflow-y:auto;
+  }
+  .course-card{
+    width:100%; max-width:760px;
+    background:rgba(255,245,245,0.08);
+    border:1px solid rgba(255,245,245,0.2);
+    border-radius:20px;
+    padding:44px 48px;
+    display:none;
+  }
+  .course-card.active{ display:block; }
+  .course-card h1{ font-size:2.05rem; font-weight:800; margin-bottom:14px; letter-spacing:-0.4px; }
+  .course-card h1::after{
+    content:""; display:block; width:52px; height:3px;
+    background:#FF9C9B; opacity:0.7; border-radius:2px; margin:14px 0 24px 0;
+  }
+  .course-card h1 .accent{ color:var(--accent); }
+  .course-card p{ font-size:1.1rem; line-height:1.75; opacity:0.96; margin-bottom:18px; }
+  .def-term{ color:var(--accent); font-weight:700; }
+
+  .icon-row{ display:flex; justify-content:center; margin:26px 0; }
+
+  .triad-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin:22px 0; }
+  .triad-card{
+    background:rgba(255,245,245,0.09); border:1px solid rgba(255,245,245,0.16);
+    border-top:3px solid #FF9C9B;
+    border-radius:14px; padding:18px; text-align:center;
+  }
+  .triad-card .label{ color:var(--accent); font-weight:800; font-size:1.08rem; margin-bottom:9px; display:block; }
+  .triad-card p{ font-size:0.96rem; margin:0; opacity:0.94; line-height:1.5; }
+
+  .tip-box{
+    border-left:3px solid var(--accent);
+    background:rgba(226,75,74,0.08);
+    padding:14px 18px; border-radius:0 10px 10px 0;
+    font-size:0.98rem; line-height:1.65; margin:20px 0;
+  }
+  .tip-box strong{ color:var(--accent); }
+
+  .stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:22px 0; }
+  .stat-card{
+    background:rgba(255,245,245,0.09); border:1px solid rgba(255,245,245,0.18);
+    border-top:3px solid var(--accent);
+    border-radius:14px; padding:22px;
+  }
+  .stat-card .num{ font-size:2.1rem; font-weight:800; color:var(--accent); display:block; }
+  .stat-card .desc{ font-size:0.94rem; opacity:0.96; margin-top:6px; line-height:1.5; }
+  .stat-source{ font-size:0.85rem; opacity:0.8; text-align:right; margin-top:4px; }
+
+  .vocab-list{ display:flex; flex-direction:column; gap:14px; margin:20px 0; }
+  .vocab-item{
+    display:flex; gap:14px; align-items:flex-start;
+    background:rgba(255,245,245,0.08); border:1px solid rgba(255,245,245,0.16);
+    border-left:3px solid #FF9C9B;
+    border-radius:12px; padding:14px 18px;
+  }
+  .vocab-item .term{ color:var(--accent); font-weight:800; min-width:135px; font-size:1.04rem; }
+  .vocab-item .def{ font-size:1rem; line-height:1.6; opacity:0.96; }
+  .vocab-item .def .formula{ display:block; margin-top:4px; font-weight:700; opacity:0.95; }
+
+  .diagram-wrap{
+    margin:26px 0; padding:18px 12px;
+    background:rgba(11,40,48,0.55); border:1px solid rgba(255,245,245,0.15);
+    border-radius:16px;
+  }
+  .diagram-wrap svg{ width:100%; height:auto; }
+
+  .tease{ font-style:italic; opacity:0.85; border-top:1px solid rgba(255,245,245,0.15); padding-top:16px; margin-top:24px; }
+
+  .course-nav{
+    position:relative; z-index:2;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 60px 32px 60px;
+  }
+  .course-nav button{ padding:14px 34px; font-size:0.92rem; }
+  .course-nav button:disabled{ opacity:0.35; cursor:not-allowed; transform:none; box-shadow:none; }
+  .page-dots{ display:flex; gap:8px; }
+  .page-dots span{ width:8px; height:8px; border-radius:50%; background:rgba(255,245,245,0.25); }
+  .page-dots span.active{ background:var(--accent); }
+</style>
+</head>
+<body class="course-page">
+
+  <div class="course-pattern">
+    <svg viewBox="0 0 600 800" preserveAspectRatio="xMidYMid slice">
+      <g fill="none" stroke="#FFF5F5" stroke-width="1">
+        <line x1="60" y1="120" x2="180" y2="200"/>
+        <line x1="180" y1="200" x2="120" y2="330"/>
+        <line x1="180" y1="200" x2="340" y2="180"/>
+        <line x1="340" y1="180" x2="420" y2="300"/>
+        <line x1="120" y1="330" x2="280" y2="420"/>
+        <line x1="280" y1="420" x2="420" y2="300"/>
+        <line x1="280" y1="420" x2="220" y2="560"/>
+        <line x1="220" y1="560" x2="380" y2="620"/>
+        <line x1="420" y1="300" x2="520" y2="440"/>
+        <line x1="520" y1="440" x2="380" y2="620"/>
+      </g>
+      <g fill="#FFF5F5">
+        <circle cx="60" cy="120" r="4"/><circle cx="180" cy="200" r="4"/><circle cx="120" cy="330" r="4"/>
+        <circle cx="340" cy="180" r="4"/><circle cx="420" cy="300" r="4"/><circle cx="280" cy="420" r="4"/>
+        <circle cx="220" cy="560" r="4"/><circle cx="380" cy="620" r="4"/><circle cx="520" cy="440" r="4"/>
+      </g>
+    </svg>
+  </div>
+
+  <header class="course-header">
+    <div>
+      <span class="course-eyebrow">Module 1</span>
+      <span class="course-title">What's Cybersecurity</span>
+    </div>
+    <div class="shard-progress" id="shardProgress">
+      <!-- 4 shards, one per page -->
+      <svg viewBox="0 0 40 50"><polygon class="shard-icon" points="20,4 40,15 37,44 15,50 3,30"/></svg>
+      <svg viewBox="0 0 40 50"><polygon class="shard-icon" points="20,4 40,15 37,44 15,50 3,30"/></svg>
+      <svg viewBox="0 0 40 50"><polygon class="shard-icon" points="20,4 40,15 37,44 15,50 3,30"/></svg>
+      <svg viewBox="0 0 40 50"><polygon class="shard-icon" points="20,4 40,15 37,44 15,50 3,30"/></svg>
+      <svg viewBox="0 0 40 50"><polygon class="shard-icon" points="20,4 40,15 37,44 15,50 3,30"/></svg>
+    </div>
+  </header>
+
+  <main class="course-viewport">
+
+    <!-- PAGE 1 -->
+    <section class="course-card active" data-page="1">
+      <h1>What is <span class="accent">Cybersecurity?</span></h1>
+      <p>By definition, <span class="def-term">cybersecurity</span> is the practice of protecting computers, networks, programs, and data from <span class="def-term">unwanted access, damage, or theft</span>.</p>
+      <p>This covers everything from a personal laptop to enterprise infrastructure — the same core problem, just at different scales.</p>
+      <div class="icon-row">
+        <svg width="90" height="90" viewBox="0 0 100 100">
+          <path d="M50 6 L88 20 V48 C88 72 72 88 50 96 C28 88 12 72 12 48 V20 Z" fill="none" stroke="#FF9C9B" stroke-width="2.5" opacity="0.9"/>
+          <path d="M50 6 L88 20 V48 C88 72 72 88 50 96 C28 88 12 72 12 48 V20 Z" fill="#E24B4A" opacity="0.12"/>
+          <path d="M34 50 L45 61 L68 36" fill="none" stroke="#E24B4A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- PAGE 2 -->
+    <section class="course-card" data-page="2">
+      <h1>Core Principles — <span class="accent">The CIA Triad</span></h1>
+      <div class="triad-grid">
+        <div class="triad-card">
+          <span class="label">Confidentiality</span>
+          <p>Keeps sensitive data secret and ensures only approved people can read it.</p>
+        </div>
+        <div class="triad-card">
+          <span class="label">Integrity</span>
+          <p>Keeps data accurate and unaltered — no one changes it without permission.</p>
+        </div>
+        <div class="triad-card">
+          <span class="label">Availability</span>
+          <p>Makes sure systems and data are ready and working for approved users when needed.</p>
+        </div>
+      </div>
+      <div class="tip-box">
+        <strong>They pull against each other.</strong> Locking data down hard (confidentiality) can slow legitimate access (availability). Making a system highly available can widen the attack surface (confidentiality risk). Good security is a balance between the three, not maximizing each one independently.
+      </div>
+      <p>Whoever works in cybersecurity is responsible for guaranteeing these three principles, together — not in isolation.</p>
+    </section>
+
+    <!-- PAGE 3 -->
+    <section class="course-card" data-page="3">
+      <h1>Real World <span class="accent">Stats</span></h1>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="num">$4.99M</span>
+          <span class="desc">Average global cost of a data breach in 2026 — a record high, up 12% year over year.</span>
+        </div>
+        <div class="stat-card">
+          <span class="num">$11.5M</span>
+          <span class="desc">Average cost of a breach in the US alone — more than double the global figure.</span>
+        </div>
+        <div class="stat-card">
+          <span class="num">+56%</span>
+          <span class="desc">Year-over-year rise in AI-driven attacks, adding roughly $1M to the average breach cost.</span>
+        </div>
+        <div class="stat-card">
+          <span class="num">247 days</span>
+          <span class="desc">Average time to detect and contain a breach — attackers often sit undetected for months.</span>
+        </div>
+      </div>
+      <p class="stat-source">Source: IBM Cost of a Data Breach Report, 2026</p>
+      <p>These aren't abstract risks — a breach can shut down hospitals, leak millions of people's personal data, or bankrupt a small company overnight. This is why guaranteeing confidentiality, integrity, and availability isn't optional — it's the job.</p>
+    </section>
+
+    <!-- PAGE 4 -->
+    <section class="course-card" data-page="4">
+      <h1>Four Key <span class="accent">Words</span></h1>
+      <p>To actually start in cybersecurity, there are four key words you'll need to know.</p>
+      <div class="vocab-list">
+        <div class="vocab-item">
+          <span class="term">Vulnerability</span>
+          <span class="def">A <span class="def-term">weakness</span> in a system that an attacker can exploit.</span>
+        </div>
+        <div class="vocab-item">
+          <span class="term">Threat</span>
+          <span class="def">Anyone or anything with the <span class="def-term">potential to cause harm</span>, or that looks for a weak spot.</span>
+        </div>
+        <div class="vocab-item">
+          <span class="term">Mitigation</span>
+          <span class="def">A countermeasure — an action taken to reduce the likelihood or severity of a threat exploiting a vulnerability.</span>
+        </div>
+        <div class="vocab-item">
+          <span class="term">Risk</span>
+          <span class="def">The probability that a threat exploits a vulnerability, weighted by how severe the impact would be if it succeeds.
+            <span class="formula">Risk ≈ Likelihood × Impact</span>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 5 -->
+    <section class="course-card" data-page="5">
+      <h1>How They <span class="accent">Connect</span></h1>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 640 380" xmlns="http://www.w3.org/2000/svg">
+          <!-- asset -->
+          <rect x="20" y="55" width="120" height="190" rx="8" fill="rgba(255,245,245,0.22)" stroke="#FFF5F5" stroke-width="1.5"/>
+          <text x="80" y="130" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#0B2830">Software</text>
+          <text x="80" y="150" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#0B2830">Data</text>
+          <text x="80" y="170" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#0B2830">Material</text>
+          <text x="80" y="190" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#0B2830">Human</text>
+
+          <!-- risk node: where vulnerability + threat converge -->
+          <polygon points="320,105 375,150 320,195 265,150" fill="#FFD166" stroke="#FFF5F5" stroke-width="1.5"/>
+          <text x="320" y="146" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="15" font-weight="800" fill="#3A2B00">RISK</text>
+          <text x="320" y="160" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="9" font-weight="700" fill="#3A2B00">Likelihood × Impact</text>
+
+          <!-- vulnerability: asset -> risk -->
+          <circle cx="140" cy="150" r="6" fill="#FF7A79"/>
+          <line x1="140" y1="150" x2="263" y2="150" stroke="#FF7A79" stroke-width="3" stroke-dasharray="6,5"/>
+          <rect x="150" y="55" width="140" height="34" rx="6" fill="rgba(255,122,121,0.18)" stroke="#FF7A79" stroke-width="1"/>
+          <text x="220" y="69" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="12" font-weight="600" fill="#FFF5F5">looks for it and</text>
+          <text x="220" y="83" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="12" font-weight="600" fill="#FFF5F5">exploits it</text>
+          <text x="145" y="172" font-family="Segoe UI, sans-serif" font-size="15" font-weight="700" fill="#FF7A79">vulnerability</text>
+
+          <!-- threat: risk -> threat -->
+          <line x1="320" y1="105" x2="440" y2="55" stroke="#FF7A79" stroke-width="3"/>
+          <polygon points="450,10 480,58 462,52 475,95 438,48 452,52" fill="#FF7A79" stroke="#FFF5F5" stroke-width="1"/>
+          <text x="495" y="60" font-family="Segoe UI, sans-serif" font-size="17" font-weight="800" fill="#FFF5F5">threat</text>
+
+          <!-- mitigation: aims directly at risk -->
+          <path d="M320 275 L330 300 L355 310 L330 320 L320 345 L310 320 L285 310 L310 300 Z" fill="#7FE0B8" stroke="#FFF5F5" stroke-width="1"/>
+          <text x="320" y="364" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" font-weight="800" fill="#7FE0B8">mitigation</text>
+          <line x1="320" y1="273" x2="320" y2="198" stroke="#7FE0B8" stroke-width="2.5"/>
+          <polygon points="320,198 313,213 327,213" fill="#7FE0B8"/>
+          <rect x="345" y="225" width="185" height="40" rx="6" fill="rgba(127,224,184,0.15)" stroke="#7FE0B8" stroke-width="1"/>
+          <text x="437" y="241" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="12" font-weight="600" fill="#FFF5F5">Aims to reduce its</text>
+          <text x="437" y="256" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="12" font-weight="600" fill="#FFF5F5">likelihood or severity</text>
+        </svg>
+      </div>
+      <p class="tease">The act of exploiting a vulnerability is called an <strong>attack</strong>. Wondering what an attack actually looks like? There's more to that — next.</p>
+    </section>
+
+  </main>
+
+  <nav class="course-nav">
+    <button id="prevBtn">← Previous</button>
+    <div class="page-dots" id="pageDots">
+      <span class="active"></span><span></span><span></span><span></span><span></span>
+    </div>
+    <button id="nextBtn">Next →</button>
+  </nav>
+
+  <script>
+    const pages = document.querySelectorAll('.course-card');
+    const dots = document.querySelectorAll('.page-dots span');
+    const shards = document.querySelectorAll('.shard-icon');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    let current = 1;
+    const total = pages.length;
+
+    function render(){
+      pages.forEach(p => p.classList.toggle('active', Number(p.dataset.page) === current));
+      dots.forEach((d,i) => d.classList.toggle('active', i === current - 1));
+      shards.forEach((s,i) => {
+        s.classList.remove('done','current');
+        if (i < current - 1) s.classList.add('done');
+        else if (i === current - 1) s.classList.add('current');
+      });
+      prevBtn.disabled = current === 1;
+      nextBtn.textContent = current === total ? 'Complete Module ✓' : 'Next →';
+    }
+
+    prevBtn.addEventListener('click', () => { if (current > 1){ current--; render(); } });
+    nextBtn.addEventListener('click', () => {
+      if (current < total){ current++; render(); }
+      else { nextBtn.disabled = true; nextBtn.textContent = 'Module Complete ✓'; }
+    });
+
+    render();
+  </script>
+
+</body>
+</html>

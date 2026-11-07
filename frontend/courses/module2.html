@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Module 2: Attack Types — LinKey Shards</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body.course-page{
+    display:block;
+    height:auto;
+    min-height:100vh;
+    background:linear-gradient(200deg, var(--right-bg) 0%, var(--right-bg-2) 100%);
+    color:var(--accent-text);
+    position:relative;
+    overflow-x:hidden;
+    padding:60px 20px;
+  }
+  .course-pattern{
+    position:fixed; inset:0; opacity:0.08; pointer-events:none; z-index:0;
+  }
+  .course-pattern svg{ width:100%; height:100%; }
+
+  .course-wrap{
+    position:relative; z-index:2;
+    max-width:760px; margin:0 auto;
+  }
+
+  /* shard progress row */
+  .shard-progress{
+    display:flex; justify-content:center; gap:10px; margin-bottom:28px;
+  }
+  .shard-progress svg{ width:22px; height:22px; }
+  .shard-progress span{ cursor:pointer; }
+  .shard-progress polygon{ fill:none; stroke:rgba(255,245,245,0.35); stroke-width:2; transition:fill .2s, stroke .2s; }
+  .shard-progress .done polygon{ fill:var(--accent); stroke:var(--accent); }
+  .shard-progress .current polygon{ stroke:var(--accent); stroke-width:3; }
+
+  .course-card-frame{
+    background:rgba(255,245,245,0.08);
+    border:1px solid rgba(255,245,245,0.2);
+    border-radius:20px;
+    padding:48px 52px;
+    min-height:420px;
+  }
+
+  .course-card{ display:none; }
+  .course-card.active{ display:block; }
+
+  h1.course-h1{
+    font-size:2rem; font-weight:800; margin-bottom:2px; display:inline-block;
+  }
+  h1.course-h1::after{
+    content:""; display:block; width:60%; height:4px; background:#FF9C9B; border-radius:2px; margin-top:10px;
+  }
+
+  .def-term{ color:var(--accent); font-weight:700; }
+
+  .course-card p{ font-size:0.95rem; line-height:1.7; opacity:0.95; margin-top:18px; }
+
+  .attack-item{ margin-top:22px; }
+  .attack-item .name{ font-weight:700; color:var(--accent); }
+  .attack-item p{ margin-top:6px; }
+
+  .tip-box{
+    margin-top:28px;
+    border-left:4px solid #FF9C9B;
+    background:rgba(255,245,245,0.06);
+    padding:16px 20px;
+    border-radius:8px;
+    font-weight:600;
+    font-size:0.95rem;
+    line-height:1.6;
+  }
+  .tip-box .lead{ color:var(--accent); font-weight:800; text-transform:uppercase; font-size:0.72rem; letter-spacing:1.5px; display:block; margin-bottom:6px; }
+
+  .vocab-row{
+    border-left:4px solid #FF9C9B;
+    padding:10px 16px;
+    margin-top:14px;
+    font-size:0.9rem;
+    line-height:1.5;
+  }
+  .vocab-row .term{ color:var(--accent); font-weight:700; margin-right:8px; }
+
+  .course-nav{
+    display:flex; justify-content:space-between; align-items:center; margin-top:32px;
+  }
+  .course-nav button{
+    padding:12px 28px; font-size:0.9rem;
+  }
+  .course-nav button:disabled{ opacity:0.35; cursor:default; box-shadow:none; transform:none; }
+
+  .dots{ display:flex; gap:8px; justify-content:center; }
+  .dots span{ width:8px; height:8px; border-radius:50%; background:rgba(255,245,245,0.3); cursor:pointer; display:inline-block; }
+  .dots span.active{ background:var(--accent); }
+
+  /* --- interstitial (page 6) --- */
+  #timer-stage{ text-align:center; }
+  .timer-circle{
+    width:90px; height:90px; border-radius:50%;
+    border:3px solid var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    font-size:2rem; font-weight:800; margin:24px auto;
+  }
+  .fake-link-wrap{ text-align:center; margin-top:6px; }
+  .fake-link{
+    color:var(--accent); text-decoration:underline; font-size:0.95rem; cursor:pointer;
+  }
+  .mcq-option{
+    display:block; width:100%; text-align:left;
+    background:rgba(255,245,245,0.06); border:1px solid rgba(255,245,245,0.2);
+    color:var(--accent-text); padding:14px 18px; border-radius:10px;
+    margin-top:12px; font-size:0.9rem; cursor:pointer; font-family:inherit;
+  }
+  .mcq-option:hover:not(:disabled){ border-color:var(--accent); }
+  .mcq-option.correct{ border-color:#7FE0B8; background:rgba(127,224,184,0.12); }
+  .mcq-option.wrong{ border-color:var(--accent); background:rgba(226,75,74,0.12); }
+  #mcq-feedback, #freetext-feedback{ margin-top:14px; font-size:0.88rem; opacity:0.85; }
+
+  .free-text-row{ display:flex; gap:12px; margin-top:20px; }
+  .free-text-row input{
+    flex:1; background:rgba(255,245,245,0.08); border:1px solid rgba(255,245,245,0.25);
+    color:var(--accent-text); padding:14px 18px; border-radius:10px; font-size:1rem; text-align:center;
+  }
+
+  .badge-result{ text-align:center; margin-top:10px; }
+  .badge-result svg{ width:90px; height:90px; }
+  .badge-result h3{ margin-top:14px; color:var(--accent); }
+
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body class="course-page">
+
+  <div class="course-pattern">
+    <svg viewBox="0 0 600 800" preserveAspectRatio="xMidYMid slice">
+      <g fill="none" stroke="#FFF5F5" stroke-width="1.2">
+        <polygon points="80,40 140,75 140,145 80,180 20,145 20,75"/>
+        <polygon points="200,40 260,75 260,145 200,180 140,145 140,75"/>
+        <polygon points="80,180 140,215 140,285 80,320 20,285 20,215"/>
+        <polygon points="200,180 260,215 260,285 200,320 140,285 140,215"/>
+        <polygon points="320,40 380,75 380,145 320,180 260,145 260,75"/>
+        <polygon points="320,180 380,215 380,285 320,320 260,285 260,215"/>
+        <polygon points="80,320 140,355 140,425 80,460 20,425 20,355"/>
+        <polygon points="200,320 260,355 260,425 200,460 140,425 140,355"/>
+        <polygon points="320,320 380,355 380,425 320,460 260,425 260,355"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="course-wrap">
+    <div class="shard-progress" id="shard-progress"></div>
+
+    <div class="course-card-frame">
+
+      <section class="course-card active" data-page="1">
+        <h1 class="course-h1">Social Engineering &amp; Human Targeting</h1>
+        <p>You've probably heard the advice not to trust or be pressured by anything you receive unexpectedly — attackers know this, and they target the human side of security first.</p>
+
+        <div class="attack-item">
+          <p><span class="name">Phishing:</span> Fake emails or messages designed to trick people into giving up passwords or money. These messages often use manipulative language to pressure people into revealing sensitive information, and may contain <span class="def-term">malware</span> disguised as a normal file or familiar link.</p>
+        </div>
+
+        <div class="tip-box">
+          <span class="lead">Why it matters</span>
+          Phishing remains the single most common way attackers first get in.
+        </div>
+
+        <div class="attack-item">
+          <p><span class="name">Spear Phishing / Whaling:</span> Highly targeted phishing aimed at specific staff members or high-profile executives.</p>
+        </div>
+      </section>
+
+      <section class="course-card" data-page="2">
+        <h1 class="course-h1">Software &amp; Code Exploits</h1>
+        <div class="attack-item"><p><span class="name">Malware:</span> Harmful software — viruses, worms, spyware — built to damage systems.</p></div>
+        <div class="attack-item"><p><span class="name">Ransomware:</span> Malware that locks or encrypts files until a ransom is paid.</p></div>
+        <div class="attack-item"><p><span class="name">SQL Injection:</span> Inserting malicious code into website input fields to steal or alter <span class="def-term">database</span> information.</p></div>
+      </section>
+
+      <section class="course-card" data-page="3">
+        <h1 class="course-h1">Network Disruption</h1>
+        <div class="attack-item"><p><span class="name">DDoS (Distributed Denial-of-Service):</span> Flooding a server with fake traffic to crash it or take it offline.</p></div>
+      </section>
+
+      <section class="course-card" data-page="4">
+        <h1 class="course-h1">Access &amp; Identity Attacks</h1>
+        <div class="attack-item"><p><span class="name">Man-in-the-Middle (MitM):</span> Secretly intercepting or altering messages between two parties who believe their communication is private.</p></div>
+        <div class="attack-item"><p><span class="name">Credential Stuffing:</span> Using stolen username/password lists from past data breaches to log into unrelated accounts.</p></div>
+      </section>
+
+      <section class="course-card" data-page="5">
+        <h1 class="course-h1">Key Vocabulary</h1>
+        <div class="vocab-row"><span class="term">Phishing</span>deceptive messages designed to steal info or install malware.</div>
+        <div class="vocab-row"><span class="term">Spear Phishing / Whaling</span>phishing targeted at specific individuals.</div>
+        <div class="vocab-row"><span class="term">Malware</span>software built to damage or exploit systems.</div>
+        <div class="vocab-row"><span class="term">Ransomware</span>malware that encrypts files for ransom.</div>
+        <div class="vocab-row"><span class="term">SQL Injection</span>malicious code inserted via input fields to manipulate a database.</div>
+        <div class="vocab-row"><span class="term">DDoS</span>flooding a server with traffic to take it offline.</div>
+        <div class="vocab-row"><span class="term">Man-in-the-Middle</span>secretly intercepting communication between two parties.</div>
+        <div class="vocab-row"><span class="term">Credential Stuffing</span>reusing breached credentials to access unrelated accounts.</div>
+      </section>
+
+      <section class="course-card" data-page="6" id="interstitial-page">
+        <h1 class="course-h1">Up Next: Cybersecurity Jobs</h1>
+        <p id="interstitial-intro">Nice work completing Module 2. You'll move on to the next module automatically in:</p>
+
+        <div id="timer-stage">
+          <div class="timer-circle" id="timer-count">10</div>
+          <p class="or-click-line">...or click here:</p>
+          <div class="fake-link-wrap">
+            <a href="#" class="fake-link" id="fake-link">linkeyshars.com/modules/jobs</a>
+          </div>
+        </div>
+
+        <div id="reveal-lead" class="hidden tip-box">
+          <span class="lead">Hold on</span>
+          That timer was actually a secret test — let's see if you noticed it.
+        </div>
+
+        <div id="tricked-stage" class="hidden">
+          <p>The link you clicked read <strong>linkeyshars</strong>.com, not <strong>linkeyshards</strong>.com. One missing letter is all it takes — this is exactly how attackers count on you not reading carefully.</p>
+          <div class="tip-box">
+            Now you know we might throw in a few tricks along the way — honestly, attackers do the same. Having a sharp eye for detail is a great skill to build, and don't worry, we'll keep helping you with that through our courses.
+          </div>
+        </div>
+
+        <div id="mcq-stage" class="hidden">
+          <p>Why didn't you click the link?</p>
+          <div id="mcq-options">
+            <button class="mcq-option" data-correct="false">I zoned out for 10 seconds and didn't notice anything</button>
+            <button class="mcq-option" data-correct="false">It wasn't a real link, just styled blue/underlined text</button>
+            <button class="mcq-option" data-correct="false">It was an ad, I'm used to seeing those</button>
+            <button class="mcq-option" data-correct="false">You told me not to click links, so I didn't</button>
+            <button class="mcq-option" data-correct="true">The link points to a URL slightly different from linkeyshards.com</button>
+          </div>
+          <div id="mcq-feedback"></div>
+          <div id="mcq-wrong-message" class="hidden tip-box">
+            Now you know we might throw in a few tricks along the way — honestly, attackers do the same. Having a sharp eye for detail is a great skill to build, and don't worry, we'll keep helping you with that through our courses.
+          </div>
+        </div>
+
+        <div id="freetext-stage" class="hidden">
+          <p>Which letter was missing?</p>
+          <div class="free-text-row">
+            <input type="text" id="letter-input" maxlength="1" placeholder="?">
+            <button id="letter-submit">Confirm</button>
+          </div>
+          <div id="freetext-feedback"></div>
+        </div>
+
+        <div id="badge-stage" class="hidden badge-result">
+          <svg viewBox="0 0 100 100">
+            <polygon points="50,10 85,30 85,70 50,90 15,70 15,30" fill="none" stroke="#E24B4A" stroke-width="3"/>
+            <polygon points="50,10 85,30 85,70 50,90 15,70 15,30" fill="#E24B4A" opacity="0.15"/>
+          </svg>
+          <h3>Badge earned: Eye for Detail</h3>
+          <p>You caught the missing letter — the kind of attention that stops phishing before it starts.</p>
+        </div>
+
+        <div id="no-badge-stage" class="hidden">
+          <div class="tip-box">
+            <span class="lead">Not quite</span>
+            Now you know we might throw in a few tricks along the way — honestly, attackers do the same. Having a sharp eye for detail is a great skill to build, and don't worry, we'll keep helping you with that through our courses.
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="course-nav">
+      <button id="prev-btn">← Prev</button>
+      <div class="dots" id="dots"></div>
+      <button id="next-btn">Next →</button>
+      <button id="module-complete-nav-btn" class="hidden" type="button">✓ Module completed</button>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const cards = Array.from(document.querySelectorAll('.course-card'));
+  const total = cards.length; // read dynamically, not hardcoded
+  let current = 0;
+
+  const shardRow = document.getElementById('shard-progress');
+  const dotsRow = document.getElementById('dots');
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+
+  for (let i = 0; i < total; i++){
+    const s = document.createElement('span');
+    s.innerHTML = '<svg viewBox="0 0 20 20"><polygon points="10,1 18,6 18,14 10,19 2,14 2,6"/></svg>';
+    s.addEventListener('click', () => goTo(i));
+    shardRow.appendChild(s);
+
+    const d = document.createElement('span');
+    d.addEventListener('click', () => goTo(i));
+    dotsRow.appendChild(d);
+  }
+
+  function render(){
+    cards.forEach((c, i) => c.classList.toggle('active', i === current));
+    Array.from(shardRow.children).forEach((el, i) => {
+      el.classList.toggle('done', i < current);
+      el.classList.toggle('current', i === current);
+    });
+    Array.from(dotsRow.children).forEach((el, i) => {
+      el.classList.toggle('active', i === current);
+    });
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+
+    if (current === total - 1) startInterstitial();
+  }
+
+  function goTo(i){ current = Math.max(0, Math.min(total - 1, i)); render(); }
+
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  nextBtn.addEventListener('click', () => goTo(current + 1));
+
+  render();
+
+  // --- interstitial logic (final page only) ---
+  let timerStarted = false;
+  let countdown = 10;
+  let timerInterval = null;
+
+  const timerStage = document.getElementById('timer-stage');
+  const revealLead = document.getElementById('reveal-lead');
+  const trickedStage = document.getElementById('tricked-stage');
+  const mcqStage = document.getElementById('mcq-stage');
+  const freetextStage = document.getElementById('freetext-stage');
+  const badgeStage = document.getElementById('badge-stage');
+  const noBadgeStage = document.getElementById('no-badge-stage');
+  const timerCount = document.getElementById('timer-count');
+  const fakeLink = document.getElementById('fake-link');
+  const moduleCompleteNavBtn = document.getElementById('module-complete-nav-btn');
+
+  function showModuleComplete(){
+    nextBtn.classList.add('hidden');
+    moduleCompleteNavBtn.classList.remove('hidden');
+  }
+
+  moduleCompleteNavBtn.addEventListener('click', () => {
+    // Placeholder target until Module 3 exists — point this at module3.html once it's built.
+    window.location.href = 'index.html';
+  });
+
+  function startInterstitial(){
+    if (timerStarted) return;
+    timerStarted = true;
+    timerInterval = setInterval(() => {
+      countdown--;
+      timerCount.textContent = countdown;
+      if (countdown <= 0){
+        clearInterval(timerInterval);
+        showMCQ();
+      }
+    }, 1000);
+  }
+
+  fakeLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    clearInterval(timerInterval);
+    timerStage.classList.add('hidden');
+    revealLead.classList.remove('hidden');
+    trickedStage.classList.remove('hidden');
+    showModuleComplete();
+  });
+
+  function showMCQ(){
+    timerStage.classList.add('hidden');
+    revealLead.classList.remove('hidden');
+    mcqStage.classList.remove('hidden');
+  }
+
+  document.getElementById('mcq-options').addEventListener('click', (e) => {
+    const btn = e.target.closest('.mcq-option');
+    if (!btn) return;
+    const correct = btn.dataset.correct === 'true';
+    Array.from(document.querySelectorAll('.mcq-option')).forEach(b => b.disabled = true);
+    btn.classList.add(correct ? 'correct' : 'wrong');
+    const feedback = document.getElementById('mcq-feedback');
+    if (correct){
+      feedback.textContent = "That's the one — now let's confirm.";
+      setTimeout(() => {
+        mcqStage.classList.add('hidden');
+        freetextStage.classList.remove('hidden');
+      }, 900);
+    } else {
+      feedback.textContent = "Not quite — the link's domain was one letter off from linkeyshards.com.";
+      document.getElementById('mcq-wrong-message').classList.remove('hidden');
+      showModuleComplete();
+    }
+  });
+
+  document.getElementById('letter-submit').addEventListener('click', () => {
+    const input = document.getElementById('letter-input');
+    const submitBtn = document.getElementById('letter-submit');
+    const val = input.value.trim().toLowerCase();
+    input.disabled = true;
+    submitBtn.disabled = true;
+    if (val === 'd'){
+      freetextStage.classList.add('hidden');
+      badgeStage.classList.remove('hidden');
+      showModuleComplete();
+    } else {
+      freetextStage.classList.add('hidden');
+      noBadgeStage.classList.remove('hidden');
+      showModuleComplete();
+    }
+  });
+})();
+</script>
+</body>
+</html>

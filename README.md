@@ -144,10 +144,13 @@ Then visit `http://localhost:5500`.
 - [ ] Shard and badge tracking per user
 - [ ] Quizzes and hands-on labs
 - [ ] CV builder
+## License
+   all rights reserved
 
 ## Author
 
  Amel ben Hassen 
  https://www.linkedin.com/in/amel-ben-hassen-3a7477374/
  https://github.com/amel22265
+ 
 

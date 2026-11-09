@@ -147,4 +147,7 @@ Then visit `http://localhost:5500`.
 
 ## Author
 
-	Amel ben Hassen 
+ Amel ben Hassen 
+ https://www.linkedin.com/in/amel-ben-hassen-3a7477374/
+ https://github.com/amel22265
+
